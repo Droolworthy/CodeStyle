@@ -1,35 +1,41 @@
 using UnityEngine;
 
-[RequireComponent (typeof(Animator))]
-public class AttackState : State
+public class WaypointMovement : MonoBehaviour
 {
-    [SerializeField] private int _damage;
-    [SerializeField] private float _delay;
+    [SerializeField] private Transform _path;
+    [SerializeField] private float _speed;
 
-    private float _lastAssaultTime;
-    private Animator _animator;
+    private Transform[] _points;
+    private int _currentPoint;
 
     private void Start()
     {
-        _animator = GetComponent<Animator>();
+        _points = new Transform[_path.childCount];
+
+        for (int i = 0; i < _path.childCount; i++)
+        {
+            _points[i] = _path.GetChild(i);
+        }
     }
 
     private void Update()
     {
-        if(_lastAssaultTime <= 0)
+        Transform target = _points[_currentPoint];
+
+        transform.position = Vector3.MoveTowards(transform.position, target.position, _speed * Time.deltaTime);
+
+        if (transform.position == target.position)
         {
-            Assault(Target);
+            _currentPoint++;
 
-            _lastAssaultTime = _delay;
-        }
+            if (_currentPoint == _points.Length)
+            {
+                _currentPoint = 0;
+            }
 
-        _lastAssaultTime -= Time.deltaTime;  
-    }
+            var directionPoint = _points[_currentPoint].transform.position;
 
-    private void Assault(Player target)
-    {
-        _animator.Play("Assault");
-
-        target.ApplyDamage(_damage);
+            transform.forward = directionPoint - transform.position;
+        } 
     }
 }
