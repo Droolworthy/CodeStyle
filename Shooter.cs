@@ -1,35 +1,36 @@
+using System.Collections;
 using UnityEngine;
 
-[RequireComponent (typeof(Animator))]
-public class AttackState : State
+public class Shooter : MonoBehaviour
 {
-    [SerializeField] private int _damage;
     [SerializeField] private float _delay;
+    [SerializeField] private Bullet _bullet;
+    [SerializeField] private Transform _shootPoint;
+    [SerializeField] private Transform _target;
 
-    private float _lastAssaultTime;
-    private Animator _animator;
+    private Coroutine _coroutine;
 
     private void Start()
     {
-        _animator = GetComponent<Animator>();
+        if (_coroutine != null)
+            StopCoroutine(_coroutine);
+
+        _coroutine = StartCoroutine(Play(_delay));
     }
 
-    private void Update()
+    private IEnumerator Play(float delay)
     {
-        if(_lastAssaultTime <= 0)
+        bool isWork = true;
+
+        var wait = new WaitForSeconds(delay);
+
+        while (isWork)
         {
-            Assault(Target);
+            var newBullet = Instantiate(_bullet, _shootPoint.position, Quaternion.identity);
 
-            _lastAssaultTime = _delay;
+            newBullet.Init(_target);
+
+            yield return wait;
         }
-
-        _lastAssaultTime -= Time.deltaTime;  
-    }
-
-    private void Assault(Player target)
-    {
-        _animator.Play("Assault");
-
-        target.ApplyDamage(_damage);
     }
 }
